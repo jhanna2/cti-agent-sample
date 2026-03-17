@@ -2,17 +2,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from cti_agent.fact_cards import FactCard
 from cti_agent.steps.enrich import EnrichmentResult
-from cti_agent.steps.extract import ExtractionResult
 from cti_agent.steps.triage import TriageResult
 from cti_agent.tools.llm import OllamaClient
 
 
 def generate_detections(
     *,
-    bulletin_text: str,
+    fact_cards: list[FactCard],
     triage: TriageResult,
-    extracted: ExtractionResult,
     enriched: EnrichmentResult,
     out_dir: Path,
 ) -> Path:
@@ -23,17 +22,25 @@ def generate_detections(
     detections_dir.mkdir(parents=True, exist_ok=True)
 
     llm = OllamaClient.from_env()
+    facts_compact = "\n".join(
+        [
+            f"- title: {c.title}\n"
+            f"  score: {c.score}\n"
+            f"  entities: {c.entities}\n"
+            f"  iocs: {c.iocs}\n"
+            for c in fact_cards
+        ]
+    )
     prompt = (
         "You are a detection engineer.\n\n"
-        "Based on the bulletin and IOCs, produce:\n"
+        "Based on the selected fact cards and IOCs, produce:\n"
         "1) OpenSearch detection rule ideas (in JSON-like pseudo-structure)\n"
         "2) YARA rule (only if appropriate)\n"
         "3) Suricata rule (only if appropriate)\n\n"
         "Keep it realistic and grounded in the provided data.\n\n"
         f"TRIAGE:\n{triage.concerning_summary}\n\n"
-        f"IOCS:\n{extracted.iocs}\n\n"
+        f"SELECTED FACT CARDS:\n{facts_compact}\n\n"
         f"ENRICHED (partial):\n{_truncate(str(enriched.enriched_iocs), 3000)}\n\n"
-        f"BULLETIN:\n{bulletin_text}\n"
     )
 
     content = llm.generate(prompt).strip()

@@ -4,11 +4,12 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from cti_agent.fact_cards import FactCard
 from cti_agent.steps.analysis import analyze_and_report
 from cti_agent.steps.detections import generate_detections
 from cti_agent.steps.enrich import enrich_entities_and_iocs
-from cti_agent.steps.extract import extract_entities_and_iocs
 from cti_agent.steps.fetch import fetch_and_optimize_text
+from cti_agent.steps.fact_cards import bulletins_to_fact_cards
 from cti_agent.steps.triage import triage_items
 from cti_agent.run_metadata import BulletinMeta, PhaseTiming, RunMetadata
 from cti_agent.telemetry import capture_tool_calls
@@ -34,18 +35,21 @@ def run_pipeline(*, out_dir: Path, input_path: Path | None = None) -> PipelineRe
 
     with capture_tool_calls() as tool_calls:
         fetch_result = _time_phase("fetch", lambda: fetch_and_optimize_text(input_path=input_path))
-        bulletin_text = fetch_result.merged_text
+        bulletins_kept = fetch_result.bulletins_kept
 
-        triage = _time_phase("triage", lambda: triage_items(bulletin_text))
-        extracted = _time_phase("extract", lambda: extract_entities_and_iocs(bulletin_text))
-        enriched = _time_phase("enrich", lambda: enrich_entities_and_iocs(extracted))
+        fact_result = _time_phase("fact_cards", lambda: bulletins_to_fact_cards(bulletins=bulletins_kept))
+        fact_cards: list[FactCard] = fact_result.fact_cards
+
+        triage = _time_phase("triage", lambda: triage_items(fact_cards=fact_cards, top_n=12))
+
+        selected_fact_cards = [c for c in fact_cards if c.title in set(triage.selected_titles)]
+        enriched = _time_phase("enrich", lambda: enrich_entities_and_iocs(fact_cards=selected_fact_cards, out_dir=out_dir))
 
         report_path = _time_phase(
             "analysis_report",
             lambda: analyze_and_report(
-                bulletin_text=bulletin_text,
+                fact_cards=selected_fact_cards,
                 triage=triage,
-                extracted=extracted,
                 enriched=enriched,
                 out_dir=out_dir,
             ),
@@ -54,9 +58,8 @@ def run_pipeline(*, out_dir: Path, input_path: Path | None = None) -> PipelineRe
         detections_dir = _time_phase(
             "detections",
             lambda: generate_detections(
-                bulletin_text=bulletin_text,
+                fact_cards=selected_fact_cards,
                 triage=triage,
-                extracted=extracted,
                 enriched=enriched,
                 out_dir=out_dir,
             ),

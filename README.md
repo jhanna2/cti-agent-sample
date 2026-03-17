@@ -106,6 +106,39 @@ flowchart LR
 - `examples/sample_outputs/cti_report.md`
 - `examples/sample_outputs/run_metadata.json`
 
+## Efficiency & accuracy optimizations (how we handle context limits)
+
+This template is designed to work within **LLM context limits** while improving **accuracy** and lowering **cost**.
+
+### Token optimization (“toon”)
+- **Goal**: shrink raw bulletin/feed content before any LLM step.
+- **Approach**: normalize + compress content into a “toon” representation (e.g., remove boilerplate, dedupe, chunk/summarize).
+- **Metric**: `run_metadata.json` records `toon_optimization` including **`percent_saved`** (example: ~95% reduction for JSON-heavy pulls).
+
+### Map → reduce with Fact Cards (don’t stuff raw articles into prompts)
+- **Map step**: each kept bulletin becomes a compact **Fact Card** (small JSON) with:
+  - entities (actors/campaigns/malware/vulns/products)
+  - IOCs (typed)
+  - SCC-style signals (source credibility, confidence, exploit likelihood, novelty)
+  - key points and limited evidence
+- **Reduce step**: triage/report/detections are generated from **Fact Cards**, not full bulletin text.
+
+### Deterministic ranking before LLM triage
+- Fact Cards are **scored deterministically** and we select **top N** items.
+- This reduces noise and prevents paying the model to “sort the internet.”
+
+### Enrichment is gated + cached
+- We **only enrich IOCs from the selected top N** items (not every IOC from every feed).
+- Enrichment results are cached (`out/.cache/enrichment_cache.json`) to avoid repeated API calls and reduce cost/rate-limit risk.
+
+### Tool calls return summaries (not data dumps)
+- Internal context tools (CMDB/OpenSearch, SQL top actors) should return **compact summaries** suitable for prompts.
+- This improves grounding while keeping token budgets predictable.
+
+### Structured outputs + validation (accuracy)
+- Extraction outputs are designed as **schema-constrained JSON** (Fact Cards) with validation.
+- When parsing fails, the pipeline can drop/flag the item rather than silently hallucinating structure.
+
 ## Notes
 - This is a **template**: you’ll plug in your org’s data sources, auth, and schemas.
 - Do **not** commit secrets. Use `.env` locally and keep `.env.example` sanitized.
