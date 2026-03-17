@@ -84,6 +84,10 @@ flowchart LR
 - `examples/`: Sample bulletins and config
 - `out/`: Generated reports/detections (gitignored)
 
+## Sample outputs (for review)
+- `examples/sample_outputs/cti_report.md`
+- `examples/sample_outputs/run_metadata.json`
+
 ## Notes
 - This is a **template**: you’ll plug in your org’s data sources, auth, and schemas.
 - Do **not** commit secrets. Use `.env` locally and keep `.env.example` sanitized.
