@@ -238,7 +238,8 @@
   "toon_optimization": {
     "input_chars": 1964200,
     "method": "normalize_whitespace (template); toon conversion TODO",
-    "output_chars": 1218800
+    "output_chars": 1218800,
+    "percent_saved": 37.94
   },
   "total_duration_ms": 97840
 }

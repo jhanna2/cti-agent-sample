@@ -14,6 +14,7 @@ class TokenOptimizationMeta:
     method: str
     input_chars: int
     output_chars: int
+    percent_saved: float
 
 
 @dataclass(frozen=True)
@@ -62,6 +63,7 @@ def fetch_and_optimize_text(*, input_path: Path | None = None) -> FetchResult:
         method="normalize_whitespace (template); toon conversion TODO",
         input_chars=len(merged_in),
         output_chars=len(merged_out),
+        percent_saved=_percent_saved(input_chars=len(merged_in), output_chars=len(merged_out)),
     )
 
     return FetchResult(
@@ -70,5 +72,16 @@ def fetch_and_optimize_text(*, input_path: Path | None = None) -> FetchResult:
         merged_text=merged_out,
         toon_optimization=toon,
     )
+
+
+def _percent_saved(*, input_chars: int, output_chars: int) -> float:
+    """
+    Percent reduction from input to output.
+    Example: input=100, output=80 => 20.0
+    """
+    if input_chars <= 0:
+        return 0.0
+    saved = max(0, input_chars - max(0, output_chars))
+    return round((saved / input_chars) * 100.0, 2)
 
 
