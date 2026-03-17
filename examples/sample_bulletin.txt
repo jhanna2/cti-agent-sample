@@ -1,0 +1,12 @@
+Sample bulletin (replace with a real advisory).
+
+Threat actors reported: ExampleTeam
+Campaign: Example Campaign Alpha
+Malware: ExampleRAT
+
+Observed IOCs:
+- 8.8.8.8
+- example.com
+- https://example.com/path
+- d41d8cd98f00b204e9800998ecf8427e
+
