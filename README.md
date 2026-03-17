@@ -78,6 +78,24 @@ flowchart LR
   H --> I[Detections: OpenSearch / YARA / Suricata]
 ```
 
+## Cloud-native reference architecture (AWS)
+For an AWS-native deployment (alternative to local Ollama), see `cloud_architecture.md`.
+
+```mermaid
+flowchart LR
+  S["EventBridge schedule"] --> L1["Lambda: fetch + toon optimize"]
+  L1 --> SM["AWS Secrets Manager (API keys)"]
+  L1 --> B1["S3: raw + normalized bulletins"]
+
+  B1 --> L2["Lambda: orchestrate pipeline"]
+  L2 --> BR["Amazon Bedrock (LLM)"]
+  BR -->|tool calls| T1["Lambda tools: CMDB query (OpenSearch)"]
+  BR -->|tool calls| T2["Lambda tools: top actors (RDS/Aurora)"]
+  BR -->|tool calls| T3["Lambda tools: CTI enrichers (external APIs)"]
+
+  L2 --> O["S3: reports + detections + run metadata"]
+```
+
 ## Repo layout (scaffold)
 - `cti_agent/`: Python package (pipeline + tool interfaces)
 - `connectors/`: Example connector implementations (OpenSearch, SQL, CTI APIs)
