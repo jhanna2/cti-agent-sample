@@ -22,16 +22,16 @@ It explains the component boundaries, data flow, scoring, and extension points.
 ```mermaid
 flowchart TD
   subgraph Ingest["Part 1: Fetch + Normalize + Token Optimize"]
-    F1[Free CTI feeds\n(CISA KEV, abuse.ch, OTX, urlscan, ...)]
-    F2[Fetchers\nHTTP/RSS/JSON]
-    F3[Normalizer\nstrip boilerplate, dedupe,\nchunk, compress/toon]
+    F1["Free CTI feeds\n(CISA KEV, abuse.ch, OTX, urlscan, ...)"]
+    F2["Fetchers\nHTTP/RSS/JSON"]
+    F3["Normalizer\nstrip boilerplate, dedupe,\nchunk, compress/toon"]
     F1 --> F2 --> F3
   end
 
   subgraph Triage["Part 2: Triage (LLM + Internal Context)"]
-    L1[Ollama LLM\n(Mistral 7B template)]
-    C1[CMDB tool\n(OpenSearch index)]
-    C2[Top actor tool\n(SQL query)]
+    L1["Ollama LLM\n(Mistral 7B template)"]
+    C1["CMDB tool\n(OpenSearch index)"]
+    C2["Top actor tool\n(SQL query)"]
     F3 --> L1
     L1 -->|tool call| C1
     L1 -->|tool call| C2
@@ -39,14 +39,14 @@ flowchart TD
 
   subgraph Enrich["Part 3: Agent-loop enrichment"]
     X1[Entity/IOC extraction]
-    E1[Enrichment tools\n(free + paid APIs)]
-    E2[IOC context cache\n(optional)]
+    E1["Enrichment tools\n(free + paid APIs)"]
+    E2["IOC context cache\n(optional)"]
     L1 --> X1 --> E1 --> E2
   end
 
   subgraph Report["Part 4: Analysis + Reporting"]
     R1[Executive bulletin]
-    R2[Operational actions\n& recommendations]
+    R2["Operational actions\n& recommendations"]
     E2 --> R1
     E2 --> R2
   end
@@ -66,16 +66,16 @@ flowchart TD
 ```mermaid
 sequenceDiagram
   autonumber
-  participant P as Pipeline (cti_agent.pipeline)
-  participant Fe as Fetch (steps.fetch)
-  participant Tr as Triage (steps.triage)
-  participant Cm as CMDB Tool (tools.cmdb)
-  participant Ta as Top Actors Tool (tools.top_actors)
-  participant Ex as Extract (steps.extract)
-  participant En as Enrich (steps.enrich)
+  participant P as "Pipeline (cti_agent.pipeline)"
+  participant Fe as "Fetch (steps.fetch)"
+  participant Tr as "Triage (steps.triage)"
+  participant Cm as "CMDB Tool (tools.cmdb)"
+  participant Ta as "Top Actors Tool (tools.top_actors)"
+  participant Ex as "Extract (steps.extract)"
+  participant En as "Enrich (steps.enrich)"
   participant Ap as External CTI APIs
-  participant Ar as Analyze/Report (steps.analysis)
-  participant De as Detections (steps.detections)
+  participant Ar as "Analyze/Report (steps.analysis)"
+  participant De as "Detections (steps.detections)"
 
   P->>Fe: Fetch & optimize text
   Fe-->>P: Optimized bulletin corpus

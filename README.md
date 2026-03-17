@@ -69,9 +69,9 @@ python -m cti_agent run --input examples/sample_bulletin.txt --out out/
 ```mermaid
 flowchart LR
   A[Free CTI Sources] --> B[Fetch + Normalize + Token Optimize]
-  B --> C[Triage (LLM via Ollama)]
-  C -->|tool calls| D[CMDB (OpenSearch)]
-  C -->|tool calls| E[Top Actor List (SQL)]
+  B --> C["Triage (LLM via Ollama)"]
+  C -->|tool calls| D["CMDB (OpenSearch)"]
+  C -->|tool calls| E["Top Actor List (SQL)"]
   C --> F[Enrichment Loop]
   F --> G[External CTI APIs]
   F --> H[Analysis + Reporting]
