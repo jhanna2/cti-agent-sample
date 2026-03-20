@@ -141,5 +141,5 @@ This template is designed to work within **LLM context limits** while improving 
 
 ## Notes
 - This is a **template**: you’ll plug in your org’s data sources, auth, and schemas.
-- Do **not** commit secrets. Use `.env` locally and keep `.env.example` sanitized.
+- Do **not** commit secrets. Use `.env` locally and keep `.env.example` sanitized. 
 
